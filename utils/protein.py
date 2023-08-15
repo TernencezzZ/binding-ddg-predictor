@@ -88,7 +88,8 @@ def get_residue_pos14(res):
     suffix_to_atom = {get_atom_name_postfix(a):a for a in res.get_atoms()}
     atom_order = ['N', 'CA', 'C', 'O'] + RESIDUE_SIDECHAIN_POSTFIXES[augmented_three_to_one(res.get_resname())]
     for i, atom_suffix in enumerate(atom_order):
-        if atom_suffix not in suffix_to_atom: continue
+        if atom_suffix not in suffix_to_atom:
+            continue
         pos14[i,0], pos14[i,1], pos14[i,2] = suffix_to_atom[atom_suffix].get_coord().tolist()
     return pos14
 

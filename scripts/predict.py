@@ -12,10 +12,10 @@ from utils.protein import *
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('wt_pdb', type=str)
-    parser.add_argument('mut_pdb', type=str)
-    parser.add_argument('--model', type=str, default='./data/model.pt')
-    parser.add_argument('--device', type=str, default='cuda')
+    parser.add_argument('--wt_pdb', default="./data/example_wt.pdb", type=str)
+    parser.add_argument('--mut_pdb', default="./data/example_mut.pdb", type=str)
+    parser.add_argument('--model', default='./data/model.pt', type=str)
+    parser.add_argument('--device',  default='cuda', type=str)
     args = parser.parse_args()
 
     batch = load_wt_mut_pdb_pair(args.wt_pdb, args.mut_pdb)

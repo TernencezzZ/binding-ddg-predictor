@@ -13,8 +13,8 @@ class ComplexEncoder(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         self.cfg = cfg
-        self.relpos_embedding = nn.Embedding(cfg.max_relpos*2+2, cfg.pair_feat_dim)
-        self.residue_encoder = PerResidueEncoder(cfg.node_feat_dim)
+        self.relpos_embedding = nn.Embedding(cfg.max_relpos*2+2, cfg.pair_feat_dim) # 64
+        self.residue_encoder = PerResidueEncoder(cfg.node_feat_dim) # 128
 
         if cfg.geomattn is not None:
             self.ga_encoder = GAEncoder(
@@ -44,15 +44,15 @@ class ComplexEncoder(nn.Module):
         same_chain = (chain[:, None, :] == chain[:, :, None])   # (N, L, L)
         relpos = (seq[:, None, :] - seq[:, :, None]).clamp(min=-self.cfg.max_relpos, max=self.cfg.max_relpos) + self.cfg.max_relpos # (N, L, L)
         relpos = torch.where(same_chain, relpos, torch.full_like(relpos, fill_value=self.cfg.max_relpos*2+1))
-        pair_feat = self.relpos_embedding(relpos)   # (N, L, L, pair_ch)
-        R = construct_3d_basis(pos14[:, :, ATOM_CA], pos14[:, :, ATOM_C], pos14[:, :, ATOM_N])
+        pair_feat = self.relpos_embedding(relpos)   # (N, L, L, pair_ch) 残基间相对位置关系
+        R = construct_3d_basis(pos14[:, :, ATOM_CA], pos14[:, :, ATOM_C], pos14[:, :, ATOM_N])  # N, L, 3(x,y,z), 3(e1,e2,e3)
 
         # Residue encoder
         res_feat = self.residue_encoder(aa, pos14, mask_atom)
 
         # Geom encoder
         t = pos14[:, :, ATOM_CA]
-        mask_residue = mask_atom[:, :, ATOM_CA]
+        mask_residue = mask_atom[:, :, ATOM_CA] # N, L
         res_feat = self.ga_encoder(R, t, get_pos_CB(pos14, mask_atom), res_feat, pair_feat, mask_residue)
 
         return res_feat
@@ -68,7 +68,7 @@ class DDGReadout(nn.Module):
             nn.Linear(feat_dim, feat_dim), nn.ReLU(),
             nn.Linear(feat_dim, feat_dim)
         )
-
+        
         self.project = nn.Linear(feat_dim, 1, bias=False)
 
 

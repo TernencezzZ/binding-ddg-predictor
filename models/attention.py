@@ -173,7 +173,8 @@ class GeometricAttention(nn.Module):
         """
         Args:
             R:  Frame basis matrices, (N, L, 3, 3_index).
-            t:  Frame external (absolute) coordinates, (N, L, 3).
+            t:  Frame external (absolute) CA coordinates, (N, L, 3).
+            p_CB:   Frame external (absolute) CB coordinates, (N, L, 3).
             x:  Node-wise features, (N, L, F).
             z:  Pair-wise features, (N, L, L, C).
             mask:   Masks, (N, L).
@@ -185,7 +186,7 @@ class GeometricAttention(nn.Module):
         logits_pair = self._pair_logits(z)
         logits_spatial = self._beta_logits(R, t, p_CB)
         # Summing logits up and apply `softmax`.
-        logits_sum = logits_node + logits_pair + logits_spatial
+        logits_sum = logits_node + logits_pair + logits_spatial # N, L, L, n_heads
         alpha = _alpha_from_logits(logits_sum * np.sqrt(1 / 3), mask)  # (N, L, L, n_heads)
 
         # Aggregate features

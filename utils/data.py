@@ -100,13 +100,13 @@ class KnnResidue(object):
 
     def __call__(self, data):
         pos_CA = data['wt']['pos14'][:, ATOM_CA]
-        pos_CA_mut = pos_CA[data['mutation_mask']]
-        diff = pos_CA_mut.view(1, -1, 3) - pos_CA.view(-1, 1, 3)
-        dist = torch.linalg.norm(diff, dim=-1)
+        pos_CA_mut = pos_CA[data['mutation_mask']]  # pos of mut point
+        diff = pos_CA_mut.view(1, -1, 3) - pos_CA.view(-1, 1, 3)    # 突变位点CA与其余残基的CA的坐标之差
+        dist = torch.linalg.norm(diff, dim=-1)  # 范数（距离）
 
         try:
             mask = torch.zeros([dist.size(0)], dtype=torch.bool)
-            mask[ dist.min(dim=1)[0].argsort()[:self.num_neighbors] ] = True
+            mask[ dist.min(dim=1)[0].argsort()[:self.num_neighbors] ] = True    # min dist
         except IndexError as e:
             print(data)
             raise e
@@ -119,8 +119,8 @@ def load_wt_mut_pdb_pair(wt_path, mut_path):
     data_wt = parse_pdb(wt_path)
     data_mut = parse_pdb(mut_path)
 
-    transform = KnnResidue()
-    collate_fn = PaddingCollate()
+    transform = KnnResidue()    # knn & mask knn res
+    collate_fn = PaddingCollate()   # padding seq
     mutation_mask = (data_wt['aa'] != data_mut['aa'])
     batch = collate_fn([transform({'wt': data_wt, 'mut': data_mut, 'mutation_mask': mutation_mask})])
     return batch

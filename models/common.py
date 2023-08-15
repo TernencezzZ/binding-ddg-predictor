@@ -60,7 +60,7 @@ def project_v2v(v, e, dim):
         Project vector `v` onto vector `e`.
     Args:
         v:  (N, L, 3).
-        e:  (N, L, 3).
+        e:  (N, L, 3). e is normalized
     """
     return (e * v).sum(dim=dim, keepdim=True) * e
 
@@ -79,10 +79,10 @@ def construct_3d_basis(center, p1, p2):
     e1 = normalize_vector(v1, dim=-1)
 
     v2 = p2 - center    # (N, L, 3)
-    u2 = v2 - project_v2v(v2, e1, dim=-1)
+    u2 = v2 - project_v2v(v2, e1, dim=-1) # v2 project onto e1
     e2 = normalize_vector(u2, dim=-1)
 
-    e3 = torch.cross(e1, e2, dim=-1)    # (N, L, 3)
+    e3 = torch.cross(e1, e2, dim=-1)    # (N, L, 3) 叉积 方向垂直于原两向量，大小为两向量为邻边的平行四边形面积
 
     mat = torch.cat([
         e1.unsqueeze(-1), e2.unsqueeze(-1), e3.unsqueeze(-1)
